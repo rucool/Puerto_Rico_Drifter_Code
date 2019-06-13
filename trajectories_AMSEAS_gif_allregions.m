@@ -11,17 +11,18 @@ clc
 
 compType=computer;
 
-if ~isempty(strmatch('MACI64',compType))
-    root='/Volumes';
+if ~isempty(strmatch('PCWIN64',compType))
+    root='L:';
 else
     root='/home';
 end
+
 %% Add directories to MATLAB path for following functions.
 
-% addpath([root '/jpa104/matlab/m_map'])
-% addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/general']);
-% addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/trajectories']);
-% addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/totals']);
+addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/external_matlab_packages/m_map/'])
+addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/general']);
+addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/trajectories']);
+addpath([root '/codaradm/HFR_Progs-2_1_3beta/matlab/totals']);
 %add_subdirectories_to_path([root '/codaradm/HFR_Progs-2_1_3beta/matlab/'],{'CVS','private','@'});
 
 
@@ -30,20 +31,46 @@ f = 'https://ecowatch.ncddc.noaa.gov/thredds/dodsC/ncom_amseas_agg/AmSeas_Apr_05
 
 %% Set date & time variables.
 
-dnow= ((round(now*24))/24)+4/24;% nearest hour plus 4 to convert to UTC
+dnow= ((round(now*24))/24);
 % dtime = dnow-1:1/24:dnow;
-dtime=dnow:1/24:dnow+2;% 2 days into the future
-% dtime = datenum(2019,06,04):1/24:datenum(2019,6,7);
+dtime = datenum(2019,6,1):1/24:datenum(2019,6,2);
 
 
 
+%% Set Latitude & Longitude for figure window limits for each study region.
+
+sites={'North','East','South','West','VirginIslandsNorth','VirginIslandsSouth'};
+% sites={'North'};
+ 
+for gg=1:length(sites)
+ 
+n=sites{gg};
+ 
+switch n
+    case 'North'
+       conf.HourPlot.axisLims=[-66-20/60 -65-54/60 18+25/60 18+45/60];
+        conf.HourPlot.DomainName='Puerto_Rico_North';
+    case 'East'
+        conf.HourPlot.axisLims=[-66 -65-34/60 17+50/60 18+10/60];
+        conf.HourPlot.DomainName='Puerto_Rico_East';
+    case 'South'
+        conf.HourPlot.axisLims=[-66-50/60 -66-24/60 17+40/60 18];
+        conf.HourPlot.DomainName='Puerto_Rico_South';
+    case 'West'
+        conf.HourPlot.axisLims=[-67-36/60 -67-10/60 17+50/60 18+10/60];
+        conf.HourPlot.DomainName='Puerto_Rico_West';    
+    case 'VirginIslandsNorth'
+        conf.HourPlot.axisLims=[-65-14/60 -64-48/60 18+20/60 18+40/60];
+        conf.HourPlot.DomainName='Virgin_Islands_North';
+    case 'VirginIslandsSouth'
+        conf.HourPlot.axisLims=[-65-14/60 -64-48/60 18 18+20/60];
+        conf.HourPlot.DomainName='Virgin_Islands_South';
+end
+ 
 
 
-%% Set Latitude & Longitude for figure window limits.
+% conf.HourPlot.axisLims=[-66 -65-36/60 17+50/60 18+10/60];
 
-% conf.HourPlot.axisLims=[-68 -64 16 20];
-conf.HourPlot.axisLims=[-67.5 -65.5 17.5 19];
-conf.HourPlot.DomainName='Puerto_Rico';
 conf.HourPlot.Print=false;
 conf.HourPlot.grid=1;
 
@@ -58,24 +85,35 @@ if ~exist(AMSEAS_dir, 'dir')
 end
 
 %PNG images to be turned into animations
-AMSEAS_imgs = [AMSEAS_dir  '\AMSEAS_imgs\' ];
+AMSEAS_imgs = [AMSEAS_dir  'AMSEAS_imgs\' ];
 if ~exist(AMSEAS_imgs, 'dir')
     mkdir(AMSEAS_imgs);
 end
 
+%Sort by region
+regionfolder = [AMSEAS_imgs n '\'];
+if ~exist(regionfolder, 'dir')
+    mkdir(regionfolder);
+end
+
 %Sort by date
-dir_save = datestr(dnow, 'yyyymmdd');
-dayfolder = [AMSEAS_imgs dir_save '\'];
+dir_save = datestr(dtime(1), 'yyyymmdd');
+dayfolder = [regionfolder dir_save '\'];
 if ~exist(dayfolder, 'dir')
     mkdir(dayfolder);
 end
 
 %High Res Particle Tracking folder
-gifs = [AMSEAS_dir  '\AMSEAS_gifs\' ];
+gifs = [AMSEAS_dir  'AMSEAS_gifs\' ];
 if ~exist(gifs, 'dir')
     mkdir(gifs);
 end
 
+% Also Sort gifs by region
+regionfolder2 = [gifs n '\'];
+if ~exist(regionfolder2, 'dir')
+    mkdir(regionfolder2);
+end
 
 %conf.Totals.DomainName
 
@@ -95,26 +133,16 @@ V=TUVcat.V;
 tt=TUVcat.TimeStamp(1:end);
 tspan=TUVcat.TimeStamp(1):1/24:TUVcat.TimeStamp(end);
 
-%% Create the lat and lon of drifter release points
-wp1=[conf.HourPlot.axisLims(3) conf.HourPlot.axisLims(1)];% [lat lon]
+
+%wp1=[17+52/60+0/3600 -65-55/60-0/3600];
+wp1=[conf.HourPlot.axisLims(3)+2/60 conf.HourPlot.axisLims(1)+5/60];%lat lon
 %wp1=[35.25 -75];
-resolution=10;
-range=250;
+resolution=2;
+range=25;
  
 [wp]=release_point_generation_matrix(wp1,resolution,range);
 
 drifter=[wp(:,2) wp(:,1)];
-
-%% Filter the drifter points outside the bounds of the plotting box
-in = inpolygon(drifter(:,1),drifter(:,2),conf.HourPlot.axisLims([1 2 2 1 1]),conf.HourPlot.axisLims([3 3 4 4 3]));
-drifter(~in,:)=[];
-
-
-%% Filter the drifter points on Puerto Rico mainland
-conf.HourPlot.LandMask=[-67.3 -65.6 17.9 18.5];
-in2 = inpolygon(drifter(:,1),drifter(:,2),conf.HourPlot.LandMask([1 2 2 1 1]),conf.HourPlot.LandMask([3 3 4 4 3]));
-drifter(in2,:)=[];
-
 
 [X1,Y1]=meshgrid(unique(X),unique(Y));
 
@@ -146,11 +174,8 @@ end
 %WHERE THE PNG FILES ARE BEING SAVED TO
 % conf.Plot.BaseDir='C:\Users\Joe Anarumo\Documents\Puerto_Rico\Sargassum\Test_trajectories\Realtime_AMSEAS\';
 
-% dir_sav=datestr(dnow,'yyyymmdd');
-% conf.Plot.BaseDir=AMSEAS_imgs;
 
-dir_sav=datestr(dtime(1),'yyyymmdd');
-conf.Plot.BaseDir=['/Users/roarty/COOL/01_CODAR/02_Collaborations/Puerto_Rico/20190530_Drifter_Plots/AMSEAS/' dir_sav '/'];
+conf.Plot.BaseDir=dayfolder;
 
 f1=[root '/jpa104/caricoos/etopo1_Puerto_Rico.nc'];
  
@@ -199,7 +224,7 @@ N=append_zero(ii);
 %%-------------------------------------------------
 %% Add title string
 
-conf.HourPlot.TitleString = [' Particle Trajectories: ', ...
+conf.HourPlot.TitleString = [n,' Particle Trajectories: ', ...
                             datestr(tspan(ii),'mm/dd/yyyy HH:MM'),' ',TUVcat.TimeZone(1:3)];
 
 hdls.title = title( conf.HourPlot.TitleString, 'fontsize', 12,'color',[0 0 0] );
@@ -207,8 +232,8 @@ hdls.title = title( conf.HourPlot.TitleString, 'fontsize', 12,'color',[0 0 0] );
 timestamp(1,'trajectories_AMSEAS.m')
 
 if ~exist(conf.Plot.BaseDir, 'dir')
-        mkdir(conf.Plot.BaseDir)
-    end
+    mkdir(conf.Plot.BaseDir)
+end
 
 print(1,'-dpng','-r100',[ conf.Plot.BaseDir conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'])
 
@@ -220,41 +245,42 @@ end
 
 %% TURN DAILY FILES INTO ANIMATED GIFS
 
-%for ii=1:length(tspan)
-%    if ii==1
-%        file_NameTemp = [ 'Puerto Rico' '_'  datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
-%file_name = file_NameTemp;
-%    else
-%        file_NameTemp = [ 'Puerto Rico' '_'  datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
-%        file_name = [file_name {file_NameTemp}];
-%    end
-%end
-%%WHERE THE PNG FILES CAN BE FOUND
-%file_path = AMSEAS_imgs;
-%file_name=sort(file_name);
-%
-%file_name2 = [ 'Puerto Rico' '_'  datestr(tspan(1),'yyyy_mm_dd') '.gif'];
-%%WHERE ANIMATED GIFS ARE BEING SAVED TO
-%file_path2 = gifs;
-%
-%loops=65535;    %Forever loop
-%delay=0;        %delay between images
+for ii=1:length(tspan)
+    if ii==1
+        file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
+file_name = file_NameTemp;
+    else
+        file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
+        file_name = [file_name {file_NameTemp}];
+    end
+end
+%WHERE THE PNG FILES CAN BE FOUND
+file_path = dayfolder;
+file_name=sort(file_name);
 
-%h = waitbar(0,['0% done'],'name','Progress') ;
-%for i=1:length(file_name)
-%    if strcmpi('gif',file_name{i}(end-2:end))
-%        [M  c_map]=imread([file_path,file_name{i}]);
-%    else
-%        a=imread([file_path,file_name{i}]);
-%        [M  c_map]= rgb2ind(a,256);
-%    end
-%    if i==1
-%        imwrite(M,c_map,[file_path2,file_name2],'gif','LoopCount',loops,'DelayTime',delay)
-%    elseif i==length(file_name)
-%        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
-%    else
-%        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
-%    end
-%    waitbar(i/length(file_name),h,[num2str(round(100*i/length(file_name))),'% done']) ;
-%end
-%close(h);
+file_name2 = [ 'Puerto Rico' '_'  datestr(tspan(1),'yyyy_mm_dd') '.gif'];
+%WHERE ANIMATED GIFS ARE BEING SAVED TO
+file_path2 = regionfolder2;
+
+loops=65535;    %Forever loop
+delay=0;        %delay between images
+
+h = waitbar(0,['0% done'],'name','Progress') ;
+for i=1:length(file_name)
+    if strcmpi('gif',file_name{i}(end-2:end))
+        [M  c_map]=imread([file_path,file_name{i}]);
+    else
+        a=imread([file_path,file_name{i}]);
+        [M  c_map]= rgb2ind(a,256);
+    end
+    if i==1
+        imwrite(M,c_map,[file_path2,file_name2],'gif','LoopCount',loops,'DelayTime',delay)
+    elseif i==length(file_name)
+        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
+    else
+        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
+    end
+    waitbar(i/length(file_name),h,[num2str(round(100*i/length(file_name))),'% done']) ;
+end
+close(h);
+end

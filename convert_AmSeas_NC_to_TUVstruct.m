@@ -42,7 +42,7 @@ time_index=tlen;%example of last day;cd
 [~,tlen2] = min(tDiff2);
 time_index2=tlen2;%example of last day;cd
 
-ti=time_index2-time_index;
+ti=time_index2-time_index+1;
 
 %% pull out the u and v from the nc files
 tot.u=ncread(file, 'water_u', [I(1) J(1) 1 time_index], [I(end)-I(1)+1 J(end)-J(1)+1 1 ti]);
