@@ -1,3 +1,4 @@
+
 %% Script to generate particle trajectories of Sargassum seaweed near Puerto Rico.
 % Written by Joseph Anarumo on 3/19/2019
 
@@ -40,55 +41,72 @@ dtime = dnow:1/24:dnow+1;
 %% Create a Directory for all Processed Imagery
 
 %Directory for all AMSEAS imagery
-AMSEAS_dir = '/Users/roarty/COOL/01_CODAR/CARICOOS/AMSEAS_animations/';
-AMSEAS_dir = '/Users/roarty/COOL/01_CODAR/CARICOOS/AMSEAS_animations/';
-if ~exist(AMSEAS_dir, 'dir')
-    mkdir(AMSEAS_dir);
-end
+% AMSEAS_dir = '/Users/roarty/COOL/01_CODAR/CARICOOS/AMSEAS_animations/';
+AMSEAS_dir = '/Volumes/hroarty/public_html/caricoos/animations/';
+% if ~exist(AMSEAS_dir, 'dir')
+%     mkdir(AMSEAS_dir);
+% end
 
 %PNG images to be turned into animations
-AMSEAS_imgs = [AMSEAS_dir  'AMSEAS_imgs/' ];
-if ~exist(AMSEAS_imgs, 'dir')
-    mkdir(AMSEAS_imgs);
-end
+% AMSEAS_imgs = [AMSEAS_dir  'AMSEAS_imgs/' ];
+% if ~exist(AMSEAS_imgs, 'dir')
+%     mkdir(AMSEAS_imgs);
+% end
 
 
 
 %% Set Latitude & Longitude for figure window limits for each study region.
 
-sites={'PR_North','PR_East','PR_South','PR_West','VI_North','VI_South'};
-% sites={'North'};
+sites={'PR_North','PR_East','PR_South','PR_LaPar','PR_West','VI_North','VI_South','PR_NorthEast'};
+% sites={'PR_NorthEast'};
  
 for gg=1:length(sites)
  
 n=sites{gg};
+
+conf.Plot.BaseDir=[AMSEAS_dir n '/'];
  
 switch n
     case 'PR_North'
         conf.HourPlot.axisLims=[-66-20/60 -65-54/60 18+25/60 18+45/60];
         conf.HourPlot.DomainName='Puerto_Rico_North';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_North.mat';
-        conf.Plot.BaseDir=
+        conf.HourPlot.Title='Puerto Rico North ';
     case 'PR_East'
         conf.HourPlot.axisLims=[-66 -65-34/60 17+50/60 18+10/60];
         conf.HourPlot.DomainName='Puerto_Rico_East';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_East.mat';
+        conf.HourPlot.Title='Puerto Rico East ';
     case 'PR_South'
         conf.HourPlot.axisLims=[-66-50/60 -66-24/60 17+40/60 18];
         conf.HourPlot.DomainName='Puerto_Rico_South';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_South.mat';
+        conf.HourPlot.Title='Puerto Rico South ';
+    case 'PR_LaPar'
+        conf.HourPlot.axisLims=[-67-13/60 -66-47/60 17+40/60 18];
+        conf.HourPlot.DomainName='Puerto_Rico_LaParguera';
+        conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_LaParguera.mat';
+        conf.HourPlot.Title='Puerto Rico La Parguera ';
     case 'PR_West'
         conf.HourPlot.axisLims=[-67-36/60 -67-10/60 17+50/60 18+10/60];
         conf.HourPlot.DomainName='Puerto_Rico_West';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_West.mat';
+        conf.HourPlot.Title='Puerto Rico West ';
     case 'VI_North'
         conf.HourPlot.axisLims=[-65-14/60 -64-48/60 18+20/60 18+40/60];
         conf.HourPlot.DomainName='Virgin_Islands_North';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Virgin_Islands_North.mat';
+        conf.HourPlot.Title='Puerto Rico North ';
     case 'VI_South'
         conf.HourPlot.axisLims=[-65-14/60 -64-48/60 18 18+20/60];
         conf.HourPlot.DomainName='Virgin_Islands_South';
         conf.HourPlot.coast='/Users/roarty/data/coastline/Virgin_Islands_South.mat';
+        conf.HourPlot.Title='Puerto Rico South ';
+    case 'PR_NorthEast'
+        conf.HourPlot.axisLims=[-65-40/60 -65-18/60 18+8/60 18+26/60];
+        conf.HourPlot.DomainName='Puerto_Rico_NorthEast';
+        conf.HourPlot.coast='/Users/roarty/data/coastline/Puerto_Rico_NorthEast.mat.mat';
+        conf.HourPlot.Title='Puerto Rico NorthEast ';
 end
  
 
@@ -101,10 +119,10 @@ conf.HourPlot.grid=1;
 %% Create a Directory for all Processed Imagery in region and day folers
 
 %Sort by region
-regionfolder = [AMSEAS_imgs n '/'];
-if ~exist(regionfolder, 'dir')
-    mkdir(regionfolder);
-end
+% regionfolder = [AMSEAS_imgs n '/'];
+% if ~exist(regionfolder, 'dir')
+%     mkdir(regionfolder);
+% end
 
 % %Sort by date
 % dir_save = datestr(dtime(1), 'yyyymmdd');
@@ -114,16 +132,16 @@ end
 % end
 
 %High Res Particle Tracking folder
-gifs = [AMSEAS_dir  'AMSEAS_gifs/' ];
-if ~exist(gifs, 'dir')
-    mkdir(gifs);
-end
-
-% Also Sort gifs by region
-regionfolder2 = [gifs n '/'];
-if ~exist(regionfolder2, 'dir')
-    mkdir(regionfolder2);
-end
+% gifs = [AMSEAS_dir  'AMSEAS_gifs/' ];
+% if ~exist(gifs, 'dir')
+%     mkdir(gifs);
+% end
+% 
+% % Also Sort gifs by region
+% regionfolder2 = [gifs n '/'];
+% if ~exist(regionfolder2, 'dir')
+%     mkdir(regionfolder2);
+% end
 
 %conf.Totals.DomainName
 
@@ -237,18 +255,19 @@ N=append_zero(ii);
 %%-------------------------------------------------
 %% Add title string
 
-conf.HourPlot.TitleString = [n,' Particle Trajectories: ', ...
+conf.HourPlot.TitleString = [conf.HourPlot.Title,' Particle Trajectories: ', ...
                             datestr(tspan(ii),'mm/dd/yyyy HH:MM'),' ',TUVcat.TimeZone(1:3)];
 
 hdls.title = title( conf.HourPlot.TitleString, 'fontsize', 12,'color',[0 0 0] );
 
 timestamp(1,'trajectories_AMSEAS.m')
 
-if ~exist(conf.Plot.BaseDir, 'dir')
-    mkdir(conf.Plot.BaseDir)
-end
+% if ~exist(conf.Plot.BaseDir, 'dir')
+%     mkdir(conf.Plot.BaseDir)
+% end
 
-print(1,'-dpng','-r100',[ conf.Plot.BaseDir conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'])
+% print(1,'-dpng','-r100',[ conf.Plot.BaseDir conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'])
+print(1,'-dpng','-r100',[ conf.Plot.BaseDir conf.HourPlot.DomainName '_' sprintf('%02d',ii) '.png'])
 
 close all
 clear conf.HourPlot.TitleString
@@ -258,44 +277,46 @@ end
 
 %% TURN DAILY FILES INTO ANIMATED GIFS
 
-for ii=1:length(tspan)
-    if ii==1
-        file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
-file_name = file_NameTemp;
-    else
-        file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
-        file_name = [file_name {file_NameTemp}];
-    end
-end
-%WHERE THE PNG FILES CAN BE FOUND
-file_path = dayfolder;
-file_name=sort(file_name);
-
-file_name2 = [ 'Puerto Rico' '_'  datestr(tspan(1),'yyyy_mm_dd') '.gif'];
-%WHERE ANIMATED GIFS ARE BEING SAVED TO
-file_path2 = regionfolder2;
-
-loops=65535;    %Forever loop
-delay=0;        %delay between images
-
-h = waitbar(0,['0% done'],'name','Progress') ;
-for i=1:length(file_name)
-    if strcmpi('gif',file_name{i}(end-2:end))
-        [M  c_map]=imread([file_path,file_name{i}]);
-    else
-        a=imread([file_path,file_name{i}]);
-        [M  c_map]= rgb2ind(a,256);
-    end
-    if i==1
-        imwrite(M,c_map,[file_path2,file_name2],'gif','LoopCount',loops,'DelayTime',delay)
-    elseif i==length(file_name)
-        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
-    else
-        imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
-    end
-    waitbar(i/length(file_name),h,[num2str(round(100*i/length(file_name))),'% done']) ;
-end
-close(h);
+% for ii=1:length(tspan)
+%     if ii==1
+%         file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
+% file_name = file_NameTemp;
+%     else
+%         file_NameTemp = [ conf.HourPlot.DomainName '_' datestr(tspan(ii),'yyyy_mm_dd_HHMM') '.png'];
+%         file_name = [file_name {file_NameTemp}];
+%     end
+% end
+% %WHERE THE PNG FILES CAN BE FOUND
+% file_path = dayfolder;
+% file_name=sort(file_name);
+% 
+% file_name2 = [ 'Puerto Rico' '_'  datestr(tspan(1),'yyyy_mm_dd') '.gif'];
+% %WHERE ANIMATED GIFS ARE BEING SAVED TO
+% file_path2 = regionfolder2;
+% 
+% loops=65535;    %Forever loop
+% delay=0;        %delay between images
+% 
+% h = waitbar(0,['0% done'],'name','Progress') ;
+% for i=1:length(file_name)
+%     if strcmpi('gif',file_name{i}(end-2:end))
+%         [M  c_map]=imread([file_path,file_name{i}]);
+%     else
+%         a=imread([file_path,file_name{i}]);
+%         [M  c_map]= rgb2ind(a,256);
+%     end
+%     if i==1
+%         imwrite(M,c_map,[file_path2,file_name2],'gif','LoopCount',loops,'DelayTime',delay)
+%     elseif i==length(file_name)
+%         imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
+%     else
+%         imwrite(M,c_map,[file_path2,file_name2],'gif','WriteMode','append','DelayTime',delay)
+%     end
+%     waitbar(i/length(file_name),h,[num2str(round(100*i/length(file_name))),'% done']) ;
+% end
+% close(h);
 end
 
 toc
+
+exit
