@@ -1,4 +1,5 @@
 
+
 %% Script to generate particle trajectories of Sargassum seaweed near Puerto Rico.
 % Written by Joseph Anarumo on 3/19/2019
 
@@ -34,7 +35,7 @@ f = 'https://ecowatch.ncddc.noaa.gov/thredds/dodsC/ncom_amseas_agg/AmSeas_Apr_05
 
 %% Set date & time variables.
 
-dnow= ((round(now*24))/24);
+dnow= ((round(now*24))/24);%nearest hour
 dtime = dnow:1/24:dnow+1;
 % dtime = datenum(2019,6,1):1/24:datenum(2019,6,2);
 
@@ -47,11 +48,21 @@ AMSEAS_dir = '/Volumes/hroarty/public_html/caricoos/animations/';
 %     mkdir(AMSEAS_dir);
 % end
 
-%PNG images to be turned into animations
+%PNG images to be turned into a
+
+nimations
 % AMSEAS_imgs = [AMSEAS_dir  'AMSEAS_imgs/' ];
 % if ~exist(AMSEAS_imgs, 'dir')
 %     mkdir(AMSEAS_imgs);
 % end
+
+% load the AFAI data
+f2='https://cwcgom.aoml.noaa.gov/erddap/griddap/noaa_aoml_atlantic_oceanwatch_AFAI_3D';
+lims=[-68 -65 17 19];
+dtime2=datestr(dnow-1);
+
+[ERD]=AFAI_ERDDAP_data_fn(f2,dtime2,lims);
+
 
 
 
@@ -165,12 +176,16 @@ tspan=TUVcat.TimeStamp(1):1/24:TUVcat.TimeStamp(end);
 %wp1=[17+52/60+0/3600 -65-55/60-0/3600];
 wp1=[conf.HourPlot.axisLims(3)+2/60 conf.HourPlot.axisLims(1)+5/60];%lat lon
 %wp1=[35.25 -75];
-resolution=2;
+resolution=5;
 range=25;
  
 [wp]=release_point_generation_matrix(wp1,resolution,range);
 
-drifter=[wp(:,2) wp(:,1)];
+drifter=[wp(:,2) wp(:,1)];%[lon lat]
+
+% color code the drifters by AFAI concentration
+% dc=interp2(ERD.LON,ERD.LAT,ERD.AFAI,wp(:,2),wp(:,1));
+dc=griddata(ERD.LON,ERD.LAT,ERD.AFAI,wp(:,2),wp(:,1));
 
 [X1,Y1]=meshgrid(unique(X),unique(Y));
 
@@ -243,14 +258,19 @@ elseif ii>1
 end
 
 %% plot last location of drifter in red
-m_plot(x(ii,:),y(ii,:),'ro','MarkerFaceColor','r');
+% m_plot(x(ii,:),y(ii,:),'ro','MarkerFaceColor','r');
+m_scatter(x(ii,:),y(ii,:),50,dc,'filled');
 
 if ~isempty(find(isnan(xx(ii,:)), 1)) 
-    m_plot(x(ii,find(isnan(xx(ii,:)))),y(ii,find(isnan(xx(ii,:)))),'bo','MarkerFaceColor','b');
+    m_plot(x(ii,find(isnan(xx(ii,:)))),y(ii,find(isnan(xx(ii,:)))),'ko','MarkerFaceColor','k');
 end 
 
 %% add zeros before the number string
 N=append_zero(ii);
+
+colormap(jet)
+caxis([-0.004 0.006])
+colorbar
 
 %%-------------------------------------------------
 %% Add title string

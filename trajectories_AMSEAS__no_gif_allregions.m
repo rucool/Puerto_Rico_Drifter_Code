@@ -35,7 +35,7 @@ f = 'https://ecowatch.ncddc.noaa.gov/thredds/dodsC/ncom_amseas_agg/AmSeas_Apr_05
 
 %% Set date & time variables.
 
-dnow= ((round(now*24))/24);
+dnow= ((round(now*24))/24);%nearest hour
 dtime = dnow:1/24:dnow+1;
 % dtime = datenum(2019,6,1):1/24:datenum(2019,6,2);
 
@@ -53,6 +53,14 @@ AMSEAS_dir = '/Volumes/hroarty/public_html/caricoos/animations/';
 % if ~exist(AMSEAS_imgs, 'dir')
 %     mkdir(AMSEAS_imgs);
 % end
+
+% load the AFAI data
+f2='https://cwcgom.aoml.noaa.gov/erddap/griddap/noaa_aoml_atlantic_oceanwatch_AFAI_3D';
+lims=[-68 -65 17 19];
+dtime2=datestr(dnow-1);
+
+[ERD]=AFAI_ERDDAP_data_fn(f2,dtime2,lims);
+
 
 
 
